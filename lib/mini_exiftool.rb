@@ -277,6 +277,7 @@ class MiniExiftool
       $stderr.puts cmd
     end
     @output = `#{cmd} 2>#{@@error_file.path}`
+    @output.force_encoding('ISO-8859-1') if RUBY_VERSION =~ /\A1\.9/
     @status = $?
     unless @status.exitstatus == 0
       @error_text = File.readlines(@@error_file.path).join
