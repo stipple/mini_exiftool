@@ -1,3 +1,4 @@
+# -- encoding: utf-8 --
 require 'helpers_for_test'
 
 class TestReadNumerical < TestCase
@@ -11,6 +12,8 @@ class TestReadNumerical < TestCase
   def test_access_numerical
     assert_equal 'DYNAX 7D', @mini_exiftool_num['Model']
     assert_equal 'MLT0', @mini_exiftool_num['maker_note_version']
+    assert_equal 'MLT0', @mini_exiftool_num[:MakerNoteVersion]
+    assert_equal 'MLT0', @mini_exiftool_num[:maker_note_version]
     assert_equal 'MLT0', @mini_exiftool_num.maker_note_version
     assert_equal 400, @mini_exiftool_num.iso
   end
@@ -25,7 +28,6 @@ class TestReadNumerical < TestCase
     assert_kind_of String, (@mini_exiftool_num['SubjectLocation'] || @mini_exiftool_num['SubjectArea'])
     assert_kind_of Array, @mini_exiftool_num['Keywords']
     assert_kind_of String, @mini_exiftool_num['SupplementalCategories']
-    assert_kind_of Array, @mini_exiftool_num['SupplementalCategories'].to_a
   end
 
 end

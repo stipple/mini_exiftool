@@ -28,6 +28,10 @@ following expressions are equivalent:
  photo['datetimeoriginal']
  photo['date_time_original']
 
+It is also possible to use symbols:
+ photo[:DateTimeOriginal]
+ photo[:datetimeoriginal]
+ photo[:date_time_original]
 
 === Nicer Access Via Dynamic Methods
 
@@ -44,12 +48,12 @@ or also
 Following types of values are at the moment supported:
 * Array (e. g. Keywords => ['tree', 'gras'])
 * Fixnum (e. g. ISO => 400)
-* Float (e. g. FNumber => 9.5) 
+* Float (e. g. FNumber => 9.5)
 * String (e. g. Model => DYNAX 7D)
 * Time (e. g. DateTimeOriginal => 2005:09:13 20:08:50)
 
 Be aware, if there is only one value in a tag which can hold multiple
-values the result is'nt an array! But you can get one with the to_a
+values the result is'nt an array! But you can get one with the Array
 method:
   # only _one_ keyword
   p1 = MiniExiftool.new 'p1.jpg'
@@ -59,9 +63,9 @@ method:
   p3.keywords # => ['red', 'yellow', 'green']
 
   # if we want to get an array in both cases and don't know
-  # if there is one ore more values set let's take to_a
-  p1.keywords.to_a # => ['red']
-  p3.keywords.to_a # => ['red', 'yellow', 'green']
+  # if there is one ore more values set let's take Array()
+  Array(p1.keywords) # => ['red']
+  Array(p3.keywords) # => ['red', 'yellow', 'green']
 
 The Exiftool command-line application has an option (-n) to get values
 as numbers if possible, in MiniExiftool you can do this with setting
@@ -83,7 +87,7 @@ maybe better.
 
 The Time class of Ruby cannot handle timestamps before 1st January 1970
 on some platforms. If there are timestamps in files before this date it
-will result in an error. In this case we can set the option 
+will result in an error. In this case we can set the option
 <code>:timestamps</code> to +DateTime+ to use DateTime objects instead
 of Time objects.
 
@@ -129,6 +133,7 @@ specific tag or in general all changes.
 
 You should also look at the rdoc information of MiniExiftool.
 
-=== Further Example
+=== Further Examples
 
-See <code>shift_time.rb</code> in the +examples+ directory.
+See external_photo.rb[link://file.external_photo.html], print_portraits.rb[link://file.print_portraits.html] and shift_time.rb[link://file.shift_time.html]  in the +examples+ directory.
+

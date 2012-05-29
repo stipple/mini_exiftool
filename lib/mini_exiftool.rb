@@ -1,3 +1,4 @@
+# -- encoding: utf-8 --
 #
 # MiniExiftool
 #
@@ -7,8 +8,8 @@
 # Read and write access is done in a clean OO manner.
 #
 # Author: Jan Friedrich
-# Copyright (c) 2007-2011 by Jan Friedrich
-# Licensed under the GNU LESSER GENERAL PUBLIC LICENSE, 
+# Copyright (c) 2007-2012 by Jan Friedrich
+# Licensed under the GNU LESSER GENERAL PUBLIC LICENSE,
 # Version 2.1, February 1999
 #
 
@@ -31,13 +32,13 @@ class MiniExiftool
   attr_reader :filename
   attr_accessor :numerical, :composite, :convert_encoding, :errors, :timestamps
 
-  VERSION = '1.2.0'
+  VERSION = '1.4.2'
 
   # +opts+ support at the moment
   # * <code>:numerical</code> for numerical values, default is +false+
   # * <code>:composite</code> for including composite tags while loading,
   #   default is +true+
-  # * <code>:convert_encoding</code> convert encoding (See -L-option of 
+  # * <code>:convert_encoding</code> convert encoding (See -L-option of
   #   the exiftool command-line application, default is +false+
   # * <code>:timestamps</code> generating DateTime objects instead of
   #   Time objects if set to <code>DateTime</code>, default is +Time+
@@ -58,7 +59,7 @@ class MiniExiftool
     load filename unless filename.nil?
   end
 
-  def initialize_from_hash hash # :nodoc: 
+  def initialize_from_hash hash # :nodoc:
     hash.each_pair do |tag,value|
       set_value tag, value
     end
@@ -91,7 +92,7 @@ class MiniExiftool
     self
   end
 
-  # Reload the tags of an already readed file.
+  # Reload the tags of an already read file.
   def reload
     load @filename
   end
@@ -128,7 +129,7 @@ class MiniExiftool
     res
   end
 
-  # Returns an array of the tags (original tag names) of the readed file.
+  # Returns an array of the tags (original tag names) of the read file.
   def tags
     @values.keys.map { |key| @tag_names[key] }
   end
@@ -159,6 +160,9 @@ class MiniExiftool
       opt_params << (arr_val.detect {|x| x.kind_of?(Numeric)} ? '-n ' : '')
       opt_params << (@convert_encoding ? '-L ' : '')
       cmd = %Q(#@@cmd -q -P -overwrite_original #{opt_params} #{tag_params} #{temp_filename})
+      if convert_encoding && cmd.respond_to?(:encode)
+        cmd.encode('ISO-8859-1')
+      end
       result = run(cmd)
       unless result
         all_ok = false
@@ -181,9 +185,9 @@ class MiniExiftool
       result[@tag_names[k]] = v
     end
     result
-  end 
+  end
 
-  # Returns a YAML representation of the original loaded values of the 
+  # Returns a YAML representation of the original loaded values of the
   # MiniExiftool instance.
   def to_yaml
     to_hash.to_yaml
@@ -251,7 +255,7 @@ class MiniExiftool
   end
 
   def self.unify tag
-    tag.gsub(/[-_]/,'').downcase
+    tag.to_s.gsub(/[-_]/,'').downcase
   end
 
   # Exception class
@@ -277,7 +281,9 @@ class MiniExiftool
       $stderr.puts cmd
     end
     @output = `#{cmd} 2>#{@@error_file.path}`
-    @output.force_encoding('ISO-8859-1') if RUBY_VERSION =~ /\A1\.9/
+    if convert_encoding && @output.respond_to?(:force_encoding)
+      @output.force_encoding('ISO-8859-1')
+    end
     @status = $?
     unless @status.exitstatus == 0
       @error_text = File.readlines(@@error_file.path).join
@@ -343,13 +349,6 @@ class MiniExiftool
     else
       raise MiniExiftool::Error.new("Malformed line #{line.inspect} of exiftool output.")
     end
-    unless value.respond_to?('to_a')
-      class << value
-        def to_a
-          [self]
-        end
-      end
-    end
     return [tag, value]
   end
 
@@ -387,7 +386,7 @@ class MiniExiftool
   def self.load_or_create_pstore
     # This will hopefully work on *NIX and Windows systems
     home = ENV['HOME'] || ENV['HOMEDRIVE'] + ENV['HOMEPATH'] || ENV['USERPROFILE']
-    subdir = RUBY_PLATFORM =~ /win/i ? '_mini_exiftool' : '.mini_exiftool'
+    subdir = RUBY_PLATFORM =~ /\bmswin/i ? '_mini_exiftool' : '.mini_exiftool'
     FileUtils.mkdir_p(File.join(home, subdir))
     filename = File.join(home, subdir, 'exiftool_tags_' << exiftool_version.gsub('.', '_') << '.pstore')
     @@pstore = PStore.new filename
@@ -414,7 +413,7 @@ class MiniExiftool
   end
 
 
-  # Hash with indifferent access: 
+  # Hash with indifferent access:
   # DateTimeOriginal == datetimeoriginal == date_time_original
   class TagHash < Hash # :nodoc:
     def[] k
@@ -431,17 +430,5 @@ class MiniExiftool
       MiniExiftool.unify tag
     end
   end
-  
-end
 
-# Add to_a to Numerical if it's not yet defined
-unless Numeric.instance_methods.include? 'to_a'
-  class Numeric
-    def to_a
-      [self]
-    end
-  end
 end
-
-# Test if we can run the Exiftool command
-MiniExiftool.exiftool_version

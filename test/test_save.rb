@@ -1,3 +1,4 @@
+# -- encoding: utf-8 --
 require 'digest/md5'
 require 'fileutils'
 require 'tempfile'
@@ -5,11 +6,11 @@ require 'helpers_for_test'
 
 class TestSave < TestCase
 
+  include TempfileTest
+
   def setup
-    @temp_file = Tempfile.new('test')
-    @temp_file.close
-    @temp_filename = @temp_file.path
-    @org_filename = File.dirname(__FILE__) + '/data/test.jpg'
+    super
+    @org_filename = @data_dir + '/test.jpg'
     FileUtils.cp(@org_filename, @temp_filename)
     @mini_exiftool = MiniExiftool.new @temp_filename
     @mini_exiftool_num = MiniExiftool.new @temp_filename, :numerical => true
@@ -49,16 +50,24 @@ class TestSave < TestCase
   end
 
   def test_encoding_conversion
-    special_string = 'ÄÖÜ'
+    special_string = 'äöü'
+    if special_string.respond_to?(:encode)
+     special_string_latin1 = special_string.encode('ISO-8859-1')
+    else
+      special_string_latin1 = "\xE4\xF6\xFC"
+    end
     @mini_exiftool.title = special_string
     assert @mini_exiftool.save
     assert_equal false, @mini_exiftool.convert_encoding
     assert_equal special_string, @mini_exiftool.title
     @mini_exiftool.convert_encoding = true
-    @mini_exiftool.title = special_string
+    @mini_exiftool.title = special_string_latin1
     assert @mini_exiftool.save
     assert_equal true, @mini_exiftool.convert_encoding
-    assert_equal special_string, @mini_exiftool.title
+    if special_string_latin1.respond_to?(:encode)
+      special_string_latin1.encode!('ISO-8859-1')
+    end
+    assert_equal special_string_latin1, @mini_exiftool.title
   end
 
 end
