@@ -154,7 +154,7 @@ class MiniExiftool
       arr_val.map! {|e| convert e}
       tag_params = ''
       arr_val.each do |v|
-        tag_params << %Q(-#{original_tag}="#{v}" )
+        tag_params << %Q(-#{original_tag}=#{v.respond_to?(:shellescape) ? v.shellescape : v} )
       end
       opt_params = ''
       opt_params << (arr_val.detect {|x| x.kind_of?(Numeric)} ? '-n ' : '')
@@ -280,11 +280,13 @@ class MiniExiftool
     if $DEBUG
       $stderr.puts cmd
     end
+
     @output = `#{cmd} 2>#{@@error_file.path}`
+
+    @status = $?
     if convert_encoding && @output.respond_to?(:force_encoding)
       @output.force_encoding('ISO-8859-1')
     end
-    @status = $?
     unless @status.exitstatus == 0
       @error_text = File.readlines(@@error_file.path).join
       return false

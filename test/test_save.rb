@@ -1,5 +1,4 @@
 # -- encoding: utf-8 --
-$: << '.'
 require 'digest/md5'
 require 'fileutils'
 require 'tempfile'
@@ -71,11 +70,17 @@ class TestSave < TestCase
     assert_equal special_string_latin1, @mini_exiftool.title
   end
 
-  def test_embedded_quotes
+  def test_unbalanced_embedded_quotes
     latitude = %Q{69 deg 46' 23.23" N}
     @mini_exiftool['GPSLatitude'] = latitude
     assert @mini_exiftool.save
     assert_equal latitude, @mini_exiftool.gps_latitude 
   end
 
+  def test_balanced_embedded_quotes
+    description = %Q{"hello," said the dog}
+    @mini_exiftool['Description'] = description
+    assert @mini_exiftool.save
+    assert_equal description, @mini_exiftool.description
+  end
 end
