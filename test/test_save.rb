@@ -1,4 +1,5 @@
 # -- encoding: utf-8 --
+$: << '.'
 require 'digest/md5'
 require 'fileutils'
 require 'tempfile'
@@ -68,6 +69,13 @@ class TestSave < TestCase
       special_string_latin1.encode!('ISO-8859-1')
     end
     assert_equal special_string_latin1, @mini_exiftool.title
+  end
+
+  def test_embedded_quotes
+    latitude = %Q{69 deg 46' 23.23" N}
+    @mini_exiftool['GPSLatitude'] = latitude
+    assert @mini_exiftool.save
+    assert_equal latitude, @mini_exiftool.gps_latitude 
   end
 
 end
